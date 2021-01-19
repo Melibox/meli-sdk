@@ -1,0 +1,20 @@
+{
+    "name": "melibox/mercadolibre-php-sdk",
+    "description": "https://github.com/mercadolibre/php-sdk",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Cesar",
+            "email": "mail.mansilla@gmail.com"
+        }
+    ],
+    "require": {
+      "php": ">=5.3.0"
+    },
+    "autoload" : {
+      "psr-4": {
+          "Melibox\\": "Meli/"
+      }
+    }
+}
