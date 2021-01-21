@@ -1,6 +1,6 @@
 <?php
 
-namespace Ceman;
+namespace Melibox;
 
 class Meli {
 
