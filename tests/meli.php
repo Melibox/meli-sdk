@@ -1,21 +1,21 @@
 <?php
-require_once '../MercadoLivre/meli.php';
+require_once 'Meli/meli.php';
 
 class InitSDKTest extends PHPUnit_Framework_TestCase
 {				
 
 	protected static $meli;
 
-	protected $client_id = '123';
-    protected $client_secret = 'a secret';
+	protected $client_id = '8505627827567894';
+    protected $client_secret = 'zqEcEeznwUw0knZ3OrLJwESydBWmcbZX';
     protected $redirect_uri = 'a redirect_uri';
-    protected $access_token = 'a access_token';
-    protected $refresh_token = 'a refresh_token';
+    protected $access_token = 'APP_USR-8505627827567894-032414-48bfa8d03a6bc15793c6cd5360b48c8c-648999526';
+    protected $refresh_token = 'TG-60539731bcc4af000790817b-648999526';
 
     public function setUp() {
 
     	self::$meli = $this->getMock(
-	          'Meli', array('execute'), array($this->client_id, $this->client_secret, $this->access_token, $this->refresh_token)
+	          'Melibox\Meli', array('execute'), array($this->client_id, $this->client_secret, $this->access_token, $this->refresh_token)
 	        );
 
     }
@@ -75,8 +75,9 @@ class InitSDKTest extends PHPUnit_Framework_TestCase
              ->method('execute')
              ->with($this->equalTo('/sites/MLB'))
              ->will($this->returnCallback('getSimpleCurl'));
-	       	
-	       	$reponse = self::$meli->get('/sites/MLB');
+
+            $params = array('access_token' => $this->access_token);
+	       	$reponse = self::$meli->get('/sites/MLB', $params);
 
 			$this->assertEquals(200, $reponse['httpCode']);
 
@@ -200,11 +201,11 @@ function getAuthorizeMock() {
 
 	if($code == 1) {
 		$body = array(
-			'access_token' => 'a access_token', 
+			'access_token' => 'APP_USR-8505627827567894-032414-48bfa8d03a6bc15793c6cd5360b48c8c-648999526',
 			'token_type' => 'bearer',
 			'expires_in' => '10800',
 			'scope' => 'offline_access read write',
-			'refresh_token' => 'a refresh_token' 
+			'refresh_token' => 'TG-60539731bcc4af000790817b-648999526'
 		);
 		$return['body'] = (object) $body;
 		$return['httpCode'] = 200;

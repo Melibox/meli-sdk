@@ -2,19 +2,20 @@
 
 namespace Melibox;
 
-class Meli {
+class Meli
+{
 
-	/**
-	 * @version 2.0.0
-	 */
-    const VERSION  = "2.0.0";
+    /**
+     * @version 2.0.0
+     */
+    const VERSION = "2.0.0";
 
     /**
      * @var $API_ROOT_URL is a main URL to access the Meli API's.
      * @var $AUTH_URL is a url to redirect the user for login.
      */
     protected static $API_ROOT_URL = "https://api.mercadolibre.com";
-    protected static $OAUTH_URL    = "/oauth/token";
+    protected static $OAUTH_URL = "/oauth/token";
     public static $AUTH_URL = array(
         "MLA" => "https://auth.mercadolibre.com.ar", // Argentina
         "MLB" => "https://auth.mercadolivre.com.br", // Brasil
@@ -56,7 +57,8 @@ class Meli {
      * @param string $access_token
      * @param string $refresh_token
      */
-    public function __construct($client_id, $client_secret, $access_token = null, $refresh_token = null) {
+    public function __construct($client_id, $client_secret, $access_token = null, $refresh_token = null)
+    {
         $this->client_id = $client_id;
         $this->client_secret = $client_secret;
         $this->access_token = $access_token;
@@ -80,10 +82,11 @@ class Meli {
      * @param string $redirect_uri
      * @return string
      */
-    public function getAuthUrl($redirect_uri, $auth_url) {
+    public function getAuthUrl($redirect_uri, $auth_url)
+    {
         $this->redirect_uri = $redirect_uri;
         $params = array("client_id" => $this->client_id, "response_type" => "code", "redirect_uri" => $redirect_uri);
-        $auth_uri = $auth_url."/authorization?".http_build_query($params);
+        $auth_uri = $auth_url . "/authorization?" . http_build_query($params);
         return $auth_uri;
     }
 
@@ -95,9 +98,10 @@ class Meli {
      * @param string $redirect_uri
      *
      */
-    public function authorize($code, $redirect_uri) {
+    public function authorize($code, $redirect_uri)
+    {
 
-        if($redirect_uri)
+        if ($redirect_uri)
             $this->redirect_uri = $redirect_uri;
 
         $body = array(
@@ -115,10 +119,10 @@ class Meli {
 
         $request = $this->execute(self::$OAUTH_URL, $opts);
 
-        if($request["httpCode"] == 200) {
+        if ($request["httpCode"] == 200) {
             $this->access_token = $request["body"]->access_token;
 
-            if($request["body"]->refresh_token)
+            if ($request["body"]->refresh_token)
                 $this->refresh_token = $request["body"]->refresh_token;
 
             return $request;
@@ -133,10 +137,11 @@ class Meli {
      *
      * @return string|mixed
      */
-    public function refreshAccessToken() {
+    public function refreshAccessToken()
+    {
 
-        if($this->refresh_token) {
-             $body = array(
+        if ($this->refresh_token) {
+            $body = array(
                 "grant_type" => "refresh_token",
                 "client_id" => $this->client_id,
                 "client_secret" => $this->client_secret,
@@ -150,10 +155,10 @@ class Meli {
 
             $request = $this->execute(self::$OAUTH_URL, $opts);
 
-            if($request["httpCode"] == 200) {
+            if ($request["httpCode"] == 200) {
                 $this->access_token = $request["body"]->access_token;
 
-                if($request["body"]->refresh_token)
+                if ($request["body"]->refresh_token)
                     $this->refresh_token = $request["body"]->refresh_token;
 
                 return $request;
@@ -164,7 +169,7 @@ class Meli {
         } else {
             $result = array(
                 'error' => 'Offline-Access is not allowed.',
-                'httpCode'  => null
+                'httpCode' => null
             );
             return $result;
         }
@@ -178,7 +183,8 @@ class Meli {
      * @param boolean $assoc
      * @return mixed
      */
-    public function get($path, $params = null, $assoc = false) {
+    public function get($path, $params = null, $assoc = false)
+    {
         $exec = $this->execute($path, null, $params, $assoc);
 
         return $exec;
@@ -191,7 +197,8 @@ class Meli {
      * @param array $params
      * @return mixed
      */
-    public function post($path, $body = null, $params = array()) {
+    public function post($path, $body = null, $params = array())
+    {
         $body = json_encode($body);
         $opts = array(
             CURLOPT_HTTPHEADER => array('Content-Type: application/json'),
@@ -212,7 +219,8 @@ class Meli {
      * @param array $params
      * @return mixed
      */
-    public function put($path, $body = null, $params = array()) {
+    public function put($path, $body = null, $params = array())
+    {
         $body = json_encode($body);
         $opts = array(
             CURLOPT_HTTPHEADER => array('Content-Type: application/json'),
@@ -232,7 +240,8 @@ class Meli {
      * @param array $params
      * @return mixed
      */
-    public function delete($path, $params) {
+    public function delete($path, $params)
+    {
         $opts = array(
             CURLOPT_CUSTOMREQUEST => "DELETE"
         );
@@ -249,7 +258,8 @@ class Meli {
      * @param array $params
      * @return mixed
      */
-    public function options($path, $params = null) {
+    public function options($path, $params = null)
+    {
         $opts = array(
             CURLOPT_CUSTOMREQUEST => "OPTIONS"
         );
@@ -268,13 +278,23 @@ class Meli {
      * @param boolean $assoc
      * @return mixed
      */
-    public function execute($path, $opts = array(), $params = array(), $assoc = false) {
-        $uri = $this->make_path($path, $params);
+    public function execute($path, $opts = array(), $params = array(), $assoc = false)
+    {
+        $header = null;
+        if (isset($params['access_token'])) {
+            $header = array("Authorization: Bearer {$params['access_token']}");
+            unset($params['access_token']);
+        }
 
+        $uri = $this->make_path($path, $params);
         $ch = curl_init($uri);
+
+        if ($header != null)
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+
         curl_setopt_array($ch, self::$CURL_OPTS);
 
-        if(!empty($opts))
+        if (!empty($opts))
             curl_setopt_array($ch, $opts);
 
         $return["body"] = json_decode(curl_exec($ch), $assoc);
@@ -292,21 +312,22 @@ class Meli {
      * @param array $params
      * @return string
      */
-    public function make_path($path, $params = array()) {
+    public function make_path($path, $params = array())
+    {
         if (!preg_match("/^\//", $path)) {
             $path = '/' . $path;
         }
 
         $uri = self::$API_ROOT_URL . $path;
 
-        if(!empty($params)) {
+        if (!empty($params)) {
             $paramsJoined = array();
 
-            foreach($params as $param => $value) {
-               $paramsJoined[] = "$param=$value";
+            foreach ($params as $param => $value) {
+                $paramsJoined[] = "$param=$value";
             }
-            $params = '?'.implode('&', $paramsJoined);
-            $uri = $uri.$params;
+            $params = '?' . implode('&', $paramsJoined);
+            $uri = $uri . $params;
         }
 
         return $uri;
