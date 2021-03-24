@@ -185,7 +185,15 @@ class Meli
      */
     public function get($path, $params = null, $assoc = false)
     {
-        $exec = $this->execute($path, null, $params, $assoc);
+        $opts = null;
+        if (isset($params['access_token'])) {
+            $opts = array(
+                CURLOPT_HTTPHEADER => array("Authorization: Bearer {$params['access_token']}")
+            );
+            unset($params['access_token']);
+        }
+
+        $exec = $this->execute($path, $opts, $params, $assoc);
 
         return $exec;
     }
@@ -200,8 +208,11 @@ class Meli
     public function post($path, $body = null, $params = array())
     {
         $body = json_encode($body);
+        $token = $params['access_token'];
+        unset($params['access_token']);
+
         $opts = array(
-            CURLOPT_HTTPHEADER => array('Content-Type: application/json'),
+            CURLOPT_HTTPHEADER => array('Content-Type: application/json', "Authorization: Bearer {$token}"),
             CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => $body
         );
@@ -222,8 +233,11 @@ class Meli
     public function put($path, $body = null, $params = array())
     {
         $body = json_encode($body);
+        $token = $params['access_token'];
+        unset($params['access_token']);
+
         $opts = array(
-            CURLOPT_HTTPHEADER => array('Content-Type: application/json'),
+            CURLOPT_HTTPHEADER => array('Content-Type: application/json', "Authorization: Bearer {$token}"),
             CURLOPT_CUSTOMREQUEST => "PUT",
             CURLOPT_POSTFIELDS => $body
         );
@@ -242,7 +256,11 @@ class Meli
      */
     public function delete($path, $params)
     {
+        $token = $params['access_token'];
+        unset($params['access_token']);
+
         $opts = array(
+            CURLOPT_HTTPHEADER => array("Authorization: Bearer {$token}"),
             CURLOPT_CUSTOMREQUEST => "DELETE"
         );
 
@@ -280,17 +298,9 @@ class Meli
      */
     public function execute($path, $opts = array(), $params = array(), $assoc = false)
     {
-        $header = null;
-        if (isset($params['access_token'])) {
-            $header = array("Authorization: Bearer {$params['access_token']}");
-            unset($params['access_token']);
-        }
 
         $uri = $this->make_path($path, $params);
         $ch = curl_init($uri);
-
-        if ($header != null)
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
 
         curl_setopt_array($ch, self::$CURL_OPTS);
 
