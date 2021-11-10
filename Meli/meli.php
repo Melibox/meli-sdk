@@ -203,16 +203,17 @@ class Meli
      *
      * @param string $body
      * @param array $params
+     * @param string|null $header
      * @return mixed
      */
-    public function post($path, $body = null, $params = array())
+    public function post($path, $body = null, $params = array(), string $header = null)
     {
         $body = json_encode($body);
         $token = $params['access_token'];
         unset($params['access_token']);
 
         $opts = array(
-            CURLOPT_HTTPHEADER => array('Content-Type: application/json', "Authorization: Bearer {$token}"),
+            CURLOPT_HTTPHEADER => array('Content-Type: application/json', "Authorization: Bearer {$token}", $header),
             CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => $body
         );
@@ -226,18 +227,19 @@ class Meli
      * Execute a PUT Request
      *
      * @param string $path
-     * @param string $body
+     * @param null $body
      * @param array $params
+     * @param string|null $header
      * @return mixed
      */
-    public function put($path, $body = null, $params = array())
+    public function put($path, $body = null, $params = array(), string $header = null)
     {
         $body = json_encode($body);
         $token = $params['access_token'];
         unset($params['access_token']);
 
         $opts = array(
-            CURLOPT_HTTPHEADER => array('Content-Type: application/json', "Authorization: Bearer {$token}"),
+            CURLOPT_HTTPHEADER => array('Content-Type: application/json', "Authorization: Bearer {$token}", $header),
             CURLOPT_CUSTOMREQUEST => "PUT",
             CURLOPT_POSTFIELDS => $body
         );
