@@ -98,18 +98,45 @@ class Meli
      * @param string $redirect_uri
      *
      */
-    public function authorize($code, $redirect_uri)
+    public function authorize($code, $redirect_uri, $body = false)
     {
+        if ($body) {
+            return self::authorizeWithBody($code, $redirect_uri);
+        }
 
-        if ($redirect_uri)
+        return self::authorizeWithParameters($code, $redirect_uri);
+    }
+
+    private function authorizeWithParameters($code, $redirect_uri)
+    {
+        $params = array(
+            "grant_type" => "authorization_code",
+            "client_id" => $this->client_id,
+            "client_secret" => $this->client_secret,
+            "code" => $code,
+            "redirect_uri" => $redirect_uri
+        );
+
+        $opts = array(
+            CURLOPT_HTTPHEADER => array('Content-Type: application/x-www-form-urlencoded'),
+            CURLOPT_POST => true,
+        );
+
+        return $this->execute(self::$OAUTH_URL, $opts, $params, false);
+    }
+
+    private function authorizeWithBody($code, $redirect_uri)
+    {
+        if ($redirect_uri) {
             $this->redirect_uri = $redirect_uri;
+        }
 
         $body = array(
             "grant_type" => "authorization_code",
             "client_id" => $this->client_id,
             "client_secret" => $this->client_secret,
             "code" => $code,
-            "redirect_uri" => $this->redirect_uri
+            "redirect_uri" => $redirect_uri
         );
 
         $opts = array(
@@ -117,19 +144,7 @@ class Meli
             CURLOPT_POSTFIELDS => $body
         );
 
-        $request = $this->execute(self::$OAUTH_URL, $opts);
-
-        if ($request["httpCode"] == 200) {
-            $this->access_token = $request["body"]->access_token;
-
-            if ($request["body"]->refresh_token)
-                $this->refresh_token = $request["body"]->refresh_token;
-
-            return $request;
-
-        } else {
-            return $request;
-        }
+        return $this->execute(self::$OAUTH_URL, $opts);
     }
 
     /**
@@ -137,42 +152,46 @@ class Meli
      *
      * @return string|mixed
      */
-    public function refreshAccessToken()
+    public function refreshAccessToken($body = false)
     {
-
-        if ($this->refresh_token) {
-            $body = array(
-                "grant_type" => "refresh_token",
-                "client_id" => $this->client_id,
-                "client_secret" => $this->client_secret,
-                "refresh_token" => $this->refresh_token
-            );
-
-            $opts = array(
-                CURLOPT_POST => true,
-                CURLOPT_POSTFIELDS => $body
-            );
-
-            $request = $this->execute(self::$OAUTH_URL, $opts);
-
-            if ($request["httpCode"] == 200) {
-                $this->access_token = $request["body"]->access_token;
-
-                if ($request["body"]->refresh_token)
-                    $this->refresh_token = $request["body"]->refresh_token;
-
-                return $request;
-
-            } else {
-                return $request;
-            }
-        } else {
-            $result = array(
-                'error' => 'Offline-Access is not allowed.',
-                'httpCode' => null
-            );
-            return $result;
+        if ($body) {
+            return self::refreshAccessTokenWitchBody();
         }
+        return self::refreshAccessTokenWitchParameters();
+    }
+
+    private function refreshAccessTokenWitchBody()
+    {
+        $body = array(
+            "grant_type" => "refresh_token",
+            "client_id" => $this->client_id,
+            "client_secret" => $this->client_secret,
+            "refresh_token" => $this->refresh_token
+        );
+
+        $opts = array(
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $body
+        );
+
+        return $this->execute(self::$OAUTH_URL, $opts);
+    }
+
+    private function refreshAccessTokenWitchParameters()
+    {
+        $params = array(
+            "grant_type" => "refresh_token",
+            "client_id" => $this->client_id,
+            "client_secret" => $this->client_secret,
+            "refresh_token" => $this->refresh_token
+        );
+
+        $opts = array(
+            CURLOPT_HTTPHEADER => array('Content-Type: application/x-www-form-urlencoded'),
+            CURLOPT_POST => true,
+        );
+
+        return $this->execute(self::$OAUTH_URL, $opts, $params);
     }
 
     /**
@@ -300,14 +319,14 @@ class Meli
      */
     public function execute($path, $opts = array(), $params = array(), $assoc = false)
     {
-
         $uri = $this->make_path($path, $params);
         $ch = curl_init($uri);
 
         curl_setopt_array($ch, self::$CURL_OPTS);
 
-        if (!empty($opts))
+        if (!empty($opts)) {
             curl_setopt_array($ch, $opts);
+        }
 
         $return["body"] = json_decode(curl_exec($ch), $assoc);
         $return["httpCode"] = curl_getinfo($ch, CURLINFO_HTTP_CODE);
