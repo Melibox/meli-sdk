@@ -1,5 +1,5 @@
 <?php
-require_once 'Meli/meli.php';
+require_once 'Meli/Meli.php';
 
 class InitSDKTest extends PHPUnit_Framework_TestCase
 {				
