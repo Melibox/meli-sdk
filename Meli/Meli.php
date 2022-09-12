@@ -114,7 +114,7 @@ class Meli
             "client_id" => $this->client_id,
             "client_secret" => $this->client_secret,
             "code" => $code,
-            "redirect_uri" => $redirect_uri
+            "redirect_uri" => $this->redirect_uri
         );
 
         $opts = array(
@@ -136,7 +136,7 @@ class Meli
             "client_id" => $this->client_id,
             "client_secret" => $this->client_secret,
             "code" => $code,
-            "redirect_uri" => $redirect_uri
+            "redirect_uri" => $this->redirect_uri
         );
 
         $opts = array(
