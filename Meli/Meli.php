@@ -109,6 +109,10 @@ class Meli
 
     private function authorizeWithParameters($code, $redirect_uri)
     {
+        if ($redirect_uri) {
+            $this->redirect_uri = $redirect_uri;
+        }
+
         $params = array(
             "grant_type" => "authorization_code",
             "client_id" => $this->client_id,
